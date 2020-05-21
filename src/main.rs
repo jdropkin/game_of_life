@@ -1,3 +1,4 @@
+
 // Size of edge of board
 const BOARD_SIZE: usize = 10;
 const VERBOSE: bool = true;
@@ -49,6 +50,7 @@ impl Game {
     }
 
     // Kill a cell
+    #[allow(dead_code)]
     fn kill_cell(&mut self, i: usize, j: usize) {
         self.board[i][j] = CellState::Dead;
     }
@@ -58,6 +60,7 @@ impl Game {
     }
 
     // Revivce a cell
+    #[allow(dead_code)]
     fn revive_cell(&mut self, i: usize, j: usize) {
         self.board[i][j] = CellState::Alive;
     }
@@ -93,7 +96,6 @@ impl Game {
                 // If current cell is alive, increment counter
                 match board[row as usize][col as usize] {
                     CellState::Alive => {
-                        //println!("row: {} col: {}", row, col);
                         cnt += 1;
                     },
                     _ => (),
@@ -123,26 +125,22 @@ impl Game {
     }
 
     // Iterate a step in the game
-    fn step(mut self) -> Self {
+    fn step(&mut self) {
         for i in 0..self.board.len() {
             for j in 0..self.board[i].len() {
                 let neighbors = Game::living_neighbors(&self.board, i, j);
-                Game::update_cell(&mut self, neighbors, i, j);
+                Game::update_cell(self, neighbors, i, j);
             }
         }
         self.rounds += 1;
 
         // Swap buffer board and board
-        let b1 = self.board;
-        let b2 = self.board_buf;
-        self.board = b2;
-        self.board_buf = b1;
+        std::mem::swap(&mut self.board, &mut self.board_buf);
 
         if VERBOSE {
             self.print_board();
         }
 
-        self
     }
 
     fn print_board(&self) {
@@ -161,11 +159,10 @@ impl Game {
 
 fn main() {
     let mut g = Game::new();
-    g.revive_cell(0, 1);
     g.revive_cell(1, 0);
+    g.revive_cell(1, 1);
     g.revive_cell(1, 2);
-    g.revive_cell(2, 1);
     g.print_board();
-    g = g.step();
-    g = g.step();
+    g.step();
+    g.step();
 }
