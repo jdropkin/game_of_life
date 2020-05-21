@@ -80,8 +80,8 @@ impl Game {
 
     // Iterate a step in the game
     fn step(mut self) {
-        for (i, row) in &mut self.board.iter().enumerate() {
-            for (j, _col) in row.iter().enumerate() {
+        for i in 0..self.board.len() {
+            for j in 0..self.board[i].len() {
                 let neighbors = Game::living_neighbors(&self.board, i as i32, j as i32);
 
                 match self.get_state(i, j) {
