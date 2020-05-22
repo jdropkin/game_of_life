@@ -1,7 +1,7 @@
-
 // Size of edge of board
 const BOARD_SIZE: usize = 10;
 const VERBOSE: bool = true;
+const DEBUG: bool = false;
 
 #[derive(Copy, Clone)]
 enum CellState {
@@ -49,24 +49,18 @@ impl Game {
         }
     }
 
-    // Kill a cell
-    #[allow(dead_code)]
-    fn kill_cell(&mut self, i: usize, j: usize) {
-        self.board[i][j] = CellState::Dead;
+    fn set_cell_state(&mut self, i: usize, j: usize, state: CellState) {
+        self.board[i][j] = state;
     }
 
-    fn buf_kill_cell(game: &mut Game, i: usize, j: usize) {
-        game.board_buf[i][j] = CellState::Dead;
+    fn set_cell_states(&mut self, cells: Vec<(usize, usize)>, state: CellState) {
+        for (i, j) in cells {
+            self.set_cell_state(i, j, state);
+        }
     }
 
-    // Revivce a cell
-    #[allow(dead_code)]
-    fn revive_cell(&mut self, i: usize, j: usize) {
-        self.board[i][j] = CellState::Alive;
-    }
-
-    fn buf_revive_cell(game: &mut Game, i: usize, j: usize) {
-        game.board_buf[i][j] = CellState::Alive;
+    fn set_cell_state_buf(game: &mut Game, i: usize, j: usize, state: CellState) {
+        game.board_buf[i][j] = state;
     }
 
     // Get state of cell
@@ -97,7 +91,7 @@ impl Game {
                 match board[row as usize][col as usize] {
                     CellState::Alive => {
                         cnt += 1;
-                    },
+                    }
                     _ => (),
                 }
             }
@@ -109,16 +103,18 @@ impl Game {
     fn update_cell(game: &mut Game, neighbors: usize, i: usize, j: usize) {
         match game.get_state(i, j) {
             CellState::Alive => match neighbors {
-                2 | 3 => Game::buf_revive_cell(game, i, j),
+                2 | 3 => Game::set_cell_state_buf(game, i, j, CellState::Alive),
                 _ => {
-                    Game::buf_kill_cell(game, i, j);
+                    Game::set_cell_state_buf(game, i, j, CellState::Dead);
                     game.dead += 1;
                 }
             },
             CellState::Dead => {
                 if neighbors == 3 {
-                    Game::buf_revive_cell(game, i, j);
+                    Game::set_cell_state_buf(game, i, j, CellState::Alive);
                     game.alive += 1;
+                } else {
+                    Game:: set_cell_state_buf(game, i, j, CellState::Dead);
                 }
             }
         }
@@ -140,29 +136,57 @@ impl Game {
         if VERBOSE {
             self.print_board();
         }
-
     }
 
     fn print_board(&self) {
         for row in self.board.iter() {
             for cell in row.iter() {
                 match cell {
+                    // Print filled in square
                     CellState::Alive => print!("{} ", '\u{25a0}'),
+                    // Print empty square
                     CellState::Dead => print!("{} ", '\u{25a1}'),
                 }
             }
             println!();
         }
         println!();
+
+        if DEBUG {
+            println!("buf:");
+            for row in self.board_buf.iter() {
+                for cell in row {
+                    match cell {
+                        // Print filled in square
+                        CellState::Alive => print!("{} ", '\u{25a0}'),
+                        // Print empty square
+                        CellState::Dead => print!("{} ", '\u{25a1}'),
+                    }
+                }
+                println!();
+            }
+            println!();
+        }
     }
 }
 
 fn main() {
     let mut g = Game::new();
-    g.revive_cell(1, 0);
-    g.revive_cell(1, 1);
-    g.revive_cell(1, 2);
+    /*g.set_cell_states(
+        vec![(1, 0), (1, 1), (1, 2), (2, 1), (2, 2), (2, 3)],
+        CellState::Alive,
+    );*/
+    g.set_cell_states(
+        vec![(2, 1), (3, 2), (3, 3), (2, 3), (1, 3)],
+        CellState::Alive,
+    );
     g.print_board();
+    g.step();
+    g.step();
+    g.step();
+    g.step();
+    g.step();
+    g.step();
     g.step();
     g.step();
 }
