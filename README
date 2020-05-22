@@ -1,0 +1,4 @@
+Author: Jeremy Dropkin
+Date:   May 2020
+
+Implementation of Conway's Game of Life in Rust, to learn Rust.
